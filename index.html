@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>帝岚计算机终端保密检查系统</title>
+    <script src="./lib/vue.js"></script>
+    <script src="./lib/vue-resource-1.3.4.js"></script>
+    <script src="./lib/jquery.min.js"></script>
+
+</head>
+
+<body>
+    <div id="app">
+
+        <h1 style="text-align:center;">帝岚计算机终端保密检查系统</h1>
+
+        <div class="disable-print" style="text-align: right;">
+            <input type="button" value="查询所有" @click.self="get_all_info($event)">
+            <input type="button" value="隐藏所有" @click.self="toogle_all_visible($event)">
+            <input type="button" value="导出pdf" @click.self="generate_pdf()">
+        </div>
+
+        <!-- 检查基本信息栏 -->
+        <header>
+            <p class="table-control-bar">
+                部门信息
+            </p>
+            <table border="1">
+                <tr>
+                    <td><span class="table-title">检查工具名：</span>帝岚计算机终端保密检查系统</td>
+                    <td><span class="table-title">受检单位：</span>{{base_info["checked_unit"]}}</td>
+                    <td><span class="table-title">受检处室：</span>{{base_info["checked_room"]}}</td>
+                    <td><span class="table-title">受检人：</span>{{base_info["checked_person"]}}</td>
+                    <td><span class="table-title">检查人：</span>{{base_info["check_person"]}}</td>
+                </tr>
+
+                <tr>
+                    <td><span class="table-title">单位所属：</span>{{base_info["unit_own"]}}</td>
+                    <td><span class="table-title">地区：</span>{{base_info["area"]}}</td>
+                    <td colspan="2"><span class="table-title">备注：</span>{{base_info["comment"]}}</td>
+                    <td><span class="table-title">检查日期：</span>{{date}}</td>
+                </tr>
+            </table>
+        </header>
+        <!-- 检查基本信息栏结束 -->
+
+        <!-- 计算机信息检查功能 -->
+        <div id="computer_base_info_container">
+            <p class="table-control-bar" @click.self="toggle_visible('computer_base_info')">
+                计算机基本信息
+                <button class="check-info-button" type="button"
+                    @click.self="get_computer_base_info($event)">查询记录</button>
+            </p>
+            <table id="computer_base_info" border="1">
+                <tr>
+                    <td class="table-title">用户名：</td>
+                    <td>{{computer_base_info["user"]}}</td>
+                    <td class="table-title">IP：</td>
+                    <td>{{computer_base_info["ip"]}}</td>
+                </tr>
+                <tr>
+                    <td class="table-title">操作系统版本：</td>
+                    <td>{{computer_base_info["pc_type"]}}</td>
+                    <td class="table-title">操作系统安装时间：</td>
+                    <td>{{computer_base_info["os_install_time"]}}</td>
+                </tr>
+                <tr>
+                    <td class="table-title">系统类型：</td>
+                    <td>{{computer_base_info["os_type"]}}</td>
+                    <td class="table-title">主机名：</td>
+                    <td>{{computer_base_info["pc_name"]}}</td>
+                </tr>
+                <tr>
+                    <td class="table-title">内存信息：</td>
+                    <td>{{computer_base_info["ram_info"]}}</td>
+                    <td class="table-title">处理器信息：</td>
+                    <td>{{computer_base_info["processor_info"]}}</td>
+                </tr>
+            </table>
+        </div>
+        <!-- 计算机信息检查功能结束 -->
+
+        <!-- 网络信息 -->
+        <div>
+            <p class="table-control-bar" @click.self="toggle_visible('network_info')">
+                网络信息
+                <button class="check-info-button" type="button" @click.self="get_network_info($event)">查询记录</button>
+            </p>
+
+            <table id="network_info" border="1">
+                <tr>
+                    <th>序号</th>
+                    <th>名称</th>
+                    <th>MAC地址</th>
+                    <th>IP地址</th>
+                </tr>
+                <tr v-for="(item, i) in network_info">
+                    <td>{{i+1}}</td>
+                    <td>{{item.name}}</td>
+                    <td>{{item.mac}}</td>
+                    <td>{{item.ip}}</td>
+                </tr>
+            </table>
+        </div>
+        <!-- 网络信息结束 -->
+
+        <!-- USB设备信息 -->
+        <div>
+            <p class="table-control-bar" @click.self="toggle_visible('usb_info')">
+                USB存储设备记录
+                <button class="check-info-button" type="button" @click.self="get_usb_info($event)">查询记录</button>
+            </p>
+
+            <table id="usb_info" border="1">
+                <tr>
+                    <th>序号</th>
+                    <th>设备名</th>
+                    <th>类型</th>
+                    <th>序列号</th>
+                    <th>上次插入时间</th>
+                    <th>VID</th>
+                    <th>PID</th>
+                    <th>厂商</th>
+                    <th class="suspected-item"><input type="checkbox" name="" value="" @change.self="choose_all($event)" />全部标为疑似</th>
+                </tr>
+                <tr v-for="(item, i) in usb_info" >
+                    <td>{{i+1}}</td>
+                    <td>{{item.name}}</td>
+                    <td>{{item.service}}</td>
+                    <td>{{item.serials}}</td>
+                    <td>{{item.last_plugin_time}}</td>
+                    <td>{{item.VID}}</td>
+                    <td>{{item.PID}}</td>
+                    <td>{{item.manufacture}}</td>
+                    <td class="suspected-item"><input type="checkbox" name="doubt-item" value="" @change="state_change($event)" />标为疑似</td>
+                </tr>
+            </table>
+        </div>
+        <!-- USB设备信息结束 -->
+
+        <!-- 检查结果及整改意见 -->
+        <footer style="margin-top: 10px;">
+            <p class="table-control-bar">
+                检查结果及整改意见
+            </p>
+            <table border="1">
+                <tr>
+                    <td style="width:200px ;"><span style="font-weight: 600;">检查结果</span></td>
+                    <td colspan="4"><span style="font-weight: 600;"></span></td>
+                </tr>
+                <tr>
+                    <td><span style="font-weight: 600;">整改处理意见</span></td>
+                    <td colspan="4"><span style="font-weight: 600;"></span></td>
+                </tr>
+                <tr>
+                    <td><span style="font-weight: 600;">计算机责任人（签字）：</span></td>
+                    <td style="width:200px;"></td>
+                    <td style="width:200px;"><span style="font-weight: 600;">主管领导（签字）：</span></td>
+                    <td style="width: 200px;"></td>
+                </tr>
+            </table>
+        </footer>
+        <!-- 检查结果及整改意见结束 -->
+    </div>
+
+</body>
+
+<link rel="stylesheet" href="./css/index.css">
+<script src="./js/index.js"></script>
+
+</html>
