@@ -1,6 +1,7 @@
 var vm = new Vue({
     el: '#app',
     data: {
+        request_path_suffix: "/client/report/",
         date: "",
         base_info: {
             'secret_level': '秘密级',
@@ -12,9 +13,30 @@ var vm = new Vue({
             'check_person': '梁小龙',
             'comment': '测试节点'
         },
-        computer_base_info: {},
+        computer_base_info: [{}],
         network_info: [],
-        usb_info: []
+        harddisks_info: [],
+        all_usb_info: [],
+        usb_storage_info: [],
+        all_software_records: [],
+        all_browser_records: [],
+        internet_tool_records: [],
+        sharing_settings_records: [],
+        updates_patch_records: [],
+        cloud_disk_records: [],
+        message_tool_records: [],
+        list_wireless_device: [],
+        virtual_machine_software_records: [],
+        services_records: [],
+        current_network_records: [],
+        file_access_records: [],
+
+        account_setting: [],
+        account_permission_setting: [],
+        account_strategy: [],
+        progress_value: 0,
+        has_checked: []
+
     },
     methods: {
         choose_all(e) {
@@ -66,6 +88,7 @@ var vm = new Vue({
         },
         get_date() {
             var d = new Date();
+
             this.date = d.getFullYear() + "年" + (d.getMonth() + 1) + "月" + d.getDate() + "日";
         },
         get_computer_base_info(e) {
@@ -77,26 +100,38 @@ var vm = new Vue({
                 this.computer_base_info = content
             }).then(button.innerHTML = "查询记录")
         },
-        get_network_info(e) {
-
+        get_info(e, check_item) {
+            
             button = e.currentTarget
             button.innerHTML = "正在查询..."
-            this.$http.post('/get_network_info').then(result => {
-                console.log("the post result is:", result)
+            console.log(this.getQueryVariable("task_id"))
+            // this.$http.post('/get_network_info').then(result => {
+            this.$http.get(this.request_path_suffix + check_item, {
+                params: {
+                    task_id: parseInt(this.getQueryVariable("task_id"))
+                }
+            }).then(result => {
+                // console.log("the post result is:", result)
                 var content = result.body
-                this.network_info = content
+                this[check_item] = content
+                if (!this.has_checked.includes(check_item)) {
+                    this.progress_value = this.progress_value + 5
+                    $("progress").attr("value", this.progress_value)
+                    console.log(this.progress_value)
+                }
+                this.has_checked.push(check_item)
             }).then(button.innerHTML = "查询记录")
         },
-        get_usb_info(e) {
-
-            button = e.currentTarget
-            button.innerHTML = "正在查询..."
-            this.$http.post('/get_usb_info').then(result => {
-                console.log("the post result is:", result)
-                var content = result.body
-                this.usb_info = content
-            }).then(button.innerHTML = "查询记录")
-
+        getQueryVariable(variable) {
+            var query = window.location.search.substring(1);
+            var vars = query.split("&");
+            for (var i = 0; i < vars.length; i++) {
+                var pair = vars[i].split("=");
+                if (pair[0] == variable) {
+                    return pair[1];
+                }
+            }
+            return (false);
         },
         get_all_info(e) {
             query_all = e.currentTarget
@@ -111,7 +146,7 @@ var vm = new Vue({
         this.get_date()
     },
     mounted: function () {
-        $("#computer_base_info_container p button").click()
+        $("#start_all").click()
     }
 });
 

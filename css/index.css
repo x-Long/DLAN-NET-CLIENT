@@ -11,7 +11,8 @@
 
     .check-info-button,
     .disable-print,
-    .suspected-item {
+    .suspected-item,
+    progress {
         display: none;
     }
 }

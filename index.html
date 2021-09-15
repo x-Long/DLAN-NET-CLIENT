@@ -18,10 +18,11 @@
         <h1 style="text-align:center;">帝岚计算机终端保密检查系统</h1>
 
         <div class="disable-print" style="text-align: right;">
-            <input type="button" value="查询所有" @click.self="get_all_info($event)">
+            <input id="start_all" type="button" value="查询所有" @click.self="get_all_info($event)">
             <input type="button" value="隐藏所有" @click.self="toogle_all_visible($event)">
             <input type="button" value="导出pdf" @click.self="generate_pdf()">
         </div>
+        <progress value="1" max="100" style="width: 100%;"></progress>
 
         <!-- 检查基本信息栏 -->
         <header>
@@ -52,32 +53,32 @@
             <p class="table-control-bar" @click.self="toggle_visible('computer_base_info')">
                 计算机基本信息
                 <button class="check-info-button" type="button"
-                    @click.self="get_computer_base_info($event)">查询记录</button>
+                    @click.self="get_info($event,'computer_base_info')">查询记录</button>
             </p>
             <table id="computer_base_info" border="1">
                 <tr>
                     <td class="table-title">用户名：</td>
-                    <td>{{computer_base_info["user"]}}</td>
+                    <td>{{computer_base_info[0]["user"]}}</td>
                     <td class="table-title">IP：</td>
-                    <td>{{computer_base_info["ip"]}}</td>
+                    <td>{{computer_base_info[0]["ip"]}}</td>
                 </tr>
                 <tr>
                     <td class="table-title">操作系统版本：</td>
-                    <td>{{computer_base_info["pc_type"]}}</td>
+                    <td>{{computer_base_info[0]["pc_type"]}}</td>
                     <td class="table-title">操作系统安装时间：</td>
-                    <td>{{computer_base_info["os_install_time"]}}</td>
+                    <td>{{computer_base_info[0]["os_install_time"]}}</td>
                 </tr>
                 <tr>
                     <td class="table-title">系统类型：</td>
-                    <td>{{computer_base_info["os_type"]}}</td>
+                    <td>{{computer_base_info[0]["os_type"]}}</td>
                     <td class="table-title">主机名：</td>
-                    <td>{{computer_base_info["pc_name"]}}</td>
+                    <td>{{computer_base_info[0]["pc_name"]}}</td>
                 </tr>
                 <tr>
                     <td class="table-title">内存信息：</td>
-                    <td>{{computer_base_info["ram_info"]}}</td>
+                    <td>{{computer_base_info[0]["ram_info"]}}</td>
                     <td class="table-title">处理器信息：</td>
-                    <td>{{computer_base_info["processor_info"]}}</td>
+                    <td>{{computer_base_info[0]["processor_info"]}}</td>
                 </tr>
             </table>
         </div>
@@ -87,7 +88,8 @@
         <div>
             <p class="table-control-bar" @click.self="toggle_visible('network_info')">
                 网络信息
-                <button class="check-info-button" type="button" @click.self="get_network_info($event)">查询记录</button>
+                <button class="check-info-button" type="button"
+                    @click.self="get_info($event,'network_info')">查询记录</button>
             </p>
 
             <table id="network_info" border="1">
@@ -107,11 +109,37 @@
         </div>
         <!-- 网络信息结束 -->
 
+        <!-- 硬盘信息 -->
+        <div>
+            <p class="table-control-bar" @click.self="toggle_visible('harddisks_info')">
+                硬盘信息
+                <button class="check-info-button" type="button"
+                    @click.self="get_info($event,'harddisks_info')">查询记录</button>
+            </p>
+
+            <table id="harddisks_info" border="1">
+                <tr>
+                    <th>序号</th>
+                    <th>名称</th>
+                    <th>序列号</th>
+                    <th>容量</th>
+                </tr>
+                <tr v-for="(item, i) in harddisks_info">
+                    <td>{{i+1}}</td>
+                    <td>{{item.model}}</td>
+                    <td>{{item.serials}}</td>
+                    <td>{{item.capacity}}</td>
+                </tr>
+            </table>
+        </div>
+        <!-- 硬盘信息结束 -->
+
         <!-- USB设备信息 -->
         <div>
             <p class="table-control-bar" @click.self="toggle_visible('usb_info')">
-                USB存储设备记录
-                <button class="check-info-button" type="button" @click.self="get_usb_info($event)">查询记录</button>
+                USB设备记录
+                <button class="check-info-button" type="button"
+                    @click.self="get_info($event,'all_usb_info')">查询记录</button>
             </p>
 
             <table id="usb_info" border="1">
@@ -124,9 +152,10 @@
                     <th>VID</th>
                     <th>PID</th>
                     <th>厂商</th>
-                    <th class="suspected-item"><input type="checkbox" name="" value="" @change.self="choose_all($event)" />全部标为疑似</th>
+                    <th class="suspected-item"><input type="checkbox" name="" value=""
+                            @change.self="choose_all($event)" />全部标为疑似</th>
                 </tr>
-                <tr v-for="(item, i) in usb_info" >
+                <tr v-for="(item, i) in all_usb_info">
                     <td>{{i+1}}</td>
                     <td>{{item.name}}</td>
                     <td>{{item.service}}</td>
@@ -135,11 +164,489 @@
                     <td>{{item.VID}}</td>
                     <td>{{item.PID}}</td>
                     <td>{{item.manufacture}}</td>
-                    <td class="suspected-item"><input type="checkbox" name="doubt-item" value="" @change="state_change($event)" />标为疑似</td>
+                    <td class="suspected-item"><input type="checkbox" name="doubt-item" value=""
+                            @change="state_change($event)" />标为疑似</td>
                 </tr>
             </table>
         </div>
         <!-- USB设备信息结束 -->
+
+        <!-- USB存储设备信息 -->
+        <div>
+            <p class="table-control-bar" @click.self="toggle_visible('usb_storage_info')">
+                USB存储设备记录
+                <button class="check-info-button" type="button"
+                    @click.self="get_info($event,'usb_storage_info')">查询记录</button>
+            </p>
+
+            <table id="usb_storage_info" border="1">
+                <tr>
+                    <th>序号</th>
+                    <th>设备名</th>
+                    <th>类型</th>
+                    <th>序列号</th>
+                    <th>上次插入时间</th>
+                    <th>VID</th>
+                    <th>PID</th>
+                    <th>厂商</th>
+                    <th class="suspected-item"><input type="checkbox" name="" value=""
+                            @change.self="choose_all($event)" />全部标为疑似</th>
+                </tr>
+                <tr v-for="(item, i) in usb_storage_info">
+                    <td>{{i+1}}</td>
+                    <td>{{item.name}}</td>
+                    <td>{{item.service}}</td>
+                    <td>{{item.serials}}</td>
+                    <td>{{item.last_plugin_time}}</td>
+                    <td>{{item.VID}}</td>
+                    <td>{{item.PID}}</td>
+                    <td>{{item.manufacture}}</td>
+                    <td class="suspected-item"><input type="checkbox" name="doubt-item" value=""
+                            @change="state_change($event)" />标为疑似</td>
+                </tr>
+            </table>
+        </div>
+        <!-- USB存储设备信息结束 -->
+
+
+        <!-- 软件安装记录 -->
+        <div>
+            <p class="table-control-bar" @click.self="toggle_visible('all_software_records')">
+                软件安装记录
+                <button class="check-info-button" type="button"
+                    @click.self="get_info($event,'all_software_records')">查询记录</button>
+            </p>
+
+            <table id="all_software_records" border="1">
+                <tr>
+                    <th>序号</th>
+                    <th>名称</th>
+                    <th>版本</th>
+                    <th>厂商</th>
+                    <th>安装路径</th>
+                    <th>安装日期</th>
+                </tr>
+                <tr v-for="(item, i) in all_software_records">
+                    <td>{{i+1}}</td>
+                    <td>{{item.name}}</td>
+                    <td>{{item.version}}</td>
+                    <td>{{item.publisher}}</td>
+                    <td>{{item.install_path}}</td>
+                    <td>{{item.install_date}}</td>
+                </tr>
+            </table>
+        </div>
+        <!-- 软件安装记录 -->
+
+
+        <!-- 上网软件安装记录 -->
+        <div>
+            <p class="table-control-bar" @click.self="toggle_visible('internet_tool_records')">
+                上网软件安装记录
+                <button class="check-info-button" type="button"
+                    @click.self="get_info($event,'internet_tool_records')">查询记录</button>
+            </p>
+
+            <table id="internet_tool_records" border="1">
+                <tr>
+                    <th>序号</th>
+                    <th>名称</th>
+                    <th>版本</th>
+                    <th>厂商</th>
+                    <th>安装路径</th>
+                    <th>安装日期</th>
+                </tr>
+                <tr v-for="(item, i) in internet_tool_records">
+                    <td>{{i+1}}</td>
+                    <td>{{item.name}}</td>
+                    <td>{{item.version}}</td>
+                    <td>{{item.publisher}}</td>
+                    <td>{{item.install_path}}</td>
+                    <td>{{item.install_date}}</td>
+                </tr>
+            </table>
+        </div>
+        <!-- 上网软件安装记录 -->
+
+        <!-- 浏览器历史记录 -->
+        <div>
+            <p class="table-control-bar" @click.self="toggle_visible('all_browser_records')">
+                浏览器历史记录
+                <button class="check-info-button" type="button"
+                    @click.self="get_info($event,'all_browser_records')">查询记录</button>
+            </p>
+
+            <table id="all_browser_records" border="1">
+                <tr>
+                    <th>序号</th>
+                    <th>名称</th>
+                    <th>标题</th>
+                    <th>网址</th>
+                    <th>访问时间</th>
+                </tr>
+                <tr v-for="(item, i) in all_browser_records">
+                    <td>{{i+1}}</td>
+                    <td>{{item.browser_name}}</td>
+                    <td>{{item.title}}</td>
+                    <td>{{item.url}}</td>
+                    <td>{{item.time}}</td>
+                </tr>
+            </table>
+        </div>
+        <!-- 浏览器历史记录 -->
+
+        <!-- 共享列表 -->
+        <div>
+            <p class="table-control-bar" @click.self="toggle_visible('sharing_settings_records')">
+                共享列表
+                <button class="check-info-button" type="button"
+                    @click.self="get_info($event,'sharing_settings_records')">查询记录</button>
+            </p>
+            <table id="sharing_settings_records" border="1">
+                <tr>
+                    <th>序号</th>
+                    <th>名称</th>
+                    <th>路径</th>
+                    <th>描述</th>
+                    <th>违规提示</th>
+                    <th>违规标准</th>
+                </tr>
+                <tr v-for="(item, i) in sharing_settings_records">
+                    <td>{{i+1}}</td>
+                    <td>{{item.name}}</td>
+                    <td>{{item.path}}</td>
+                    <td>{{item.description}}</td>
+                    <td>{{item.notify}}</td>
+                    <td>{{item.deduction}}</td>
+                </tr>
+            </table>
+        </div>
+        <!-- 共享列表 -->
+
+        <!-- 系统补丁 -->
+        <div>
+            <p class="table-control-bar" @click.self="toggle_visible('updates_patch_records')">
+                系统补丁
+                <button class="check-info-button" type="button"
+                    @click.self="get_info($event,'updates_patch_records')">查询记录</button>
+            </p>
+            <table id="updates_patch_records" border="1">
+                <tr>
+                    <th>序号</th>
+                    <th>日期</th>
+                    <th>补丁号</th>
+                    <th>官方说明</th>
+                </tr>
+                <tr v-for="(item, i) in updates_patch_records">
+                    <td>{{i+1}}</td>
+                    <td>{{item.date}}</td>
+                    <td>{{item.kb_num}}</td>
+                    <td>{{item.url}}</td>
+                </tr>
+            </table>
+        </div>
+        <!-- 系统补丁 -->
+
+        <!-- 网盘上网记录 -->
+        <div>
+            <p class="table-control-bar" @click.self="toggle_visible('cloud_disk_records')">
+                网盘上网记录
+                <button class="check-info-button" type="button"
+                    @click.self="get_info($event,'cloud_disk_records')">查询记录</button>
+            </p>
+            <table id="cloud_disk_records" border="1">
+                <tr>
+                    <th>序号</th>
+                    <th>文件名</th>
+                    <th>使用时间</th>
+                    <th>网盘</th>
+                </tr>
+                <tr v-for="(item, i) in cloud_disk_records">
+                    <td>{{i+1}}</td>
+                    <td>{{item.file_name}}</td>
+                    <td>{{item.modify_time}}</td>
+                    <td>{{item.net_tool}}</td>
+                </tr>
+            </table>
+        </div>
+        <!-- 网盘上网记录 -->
+
+        <!-- 通讯工具上网记录 -->
+        <div>
+            <p class="table-control-bar" @click.self="toggle_visible('message_tool_records')">
+                通讯工具上网记录
+                <button class="check-info-button" type="button"
+                    @click.self="get_info($event,'message_tool_records')">查询记录</button>
+            </p>
+            <table id="message_tool_records" border="1">
+                <tr>
+                    <th>序号</th>
+                    <th>工具</th>
+                    <th>记录</th>
+                    <th>用户</th>
+                    <th>使用时间</th>
+                </tr>
+                <tr v-for="(item, i) in message_tool_records">
+                    <td>{{i+1}}</td>
+                    <td>{{item.tool}}</td>
+                    <td>{{item.record}}</td>
+                    <td>{{item.user}}</td>
+                    <td>{{item.access_time}}</td>
+                </tr>
+            </table>
+        </div>
+        <!-- 通讯工具上网记录 -->
+
+        <!-- 无线通讯模块 -->
+        <div>
+            <p class="table-control-bar" @click.self="toggle_visible('list_wireless_device')">
+                无线通讯模块
+                <button class="check-info-button" type="button"
+                    @click.self="get_info($event,'list_wireless_device')">查询记录</button>
+            </p>
+            <table id="list_wireless_device" border="1">
+                <tr>
+                    <th>序号</th>
+                    <th>名称</th>
+                    <th>种类</th>
+                    <th>违规提示</th>
+                    <th>违规标准</th>
+                </tr>
+                <tr v-for="(item, i) in list_wireless_device">
+                    <td>{{i+1}}</td>
+                    <td>{{item.name}}</td>
+                    <td>{{item.type}}</td>
+                    <td>{{item.notify}}</td>
+                    <td>{{item.deduction}}</td>
+                </tr>
+            </table>
+        </div>
+        <!-- 无线通讯模块 -->
+
+        <!-- 文件最近访问记录 -->
+        <div>
+            <p class="table-control-bar" @click.self="toggle_visible('file_access_records')">
+                文件最近访问记录
+                <button class="check-info-button" type="button"
+                    @click.self="get_info($event,'file_access_records')">查询记录</button>
+            </p>
+            <table id="file_access_records" border="1">
+                <tr>
+                    <th>序号</th>
+                    <th>文件名</th>
+                    <th>文件路径</th>
+                    <th>是否存在</th>
+                    <th>使用时间</th>
+                </tr>
+                <tr v-for="(item, i) in file_access_records">
+                    <td>{{i+1}}</td>
+                    <td>{{item.file_name}}</td>
+                    <td>{{item.file_path}}</td>
+                    <td>{{item.is_exists}}</td>
+                    <td>{{item.access_time}}</td>
+                </tr>
+            </table>
+        </div>
+        <!-- 文件最近访问记录 -->
+
+        <!-- 虚拟机安装 -->
+        <div>
+            <p class="table-control-bar" @click.self="toggle_visible('virtual_machine_software_records')">
+                虚拟机安装
+                <button class="check-info-button" type="button"
+                    @click.self="get_info($event,'virtual_machine_software_records')">查询记录</button>
+            </p>
+            <table id="virtual_machine_software_records" border="1">
+                <tr>
+                    <th>序号</th>
+                    <th>名称</th>
+                    <th>版本</th>
+                    <th>厂商</th>
+                    <th>安装路径</th>
+                    <th>安装日期</th>
+                    <th>违规提示</th>
+                    <th>违规标准</th>
+                </tr>
+
+                <tr v-for="(item, i) in virtual_machine_software_records">
+                    <td>{{i+1}}</td>
+                    <td>{{item.name}}</td>
+                    <td>{{item.version}}</td>
+                    <td>{{item.publisher}}</td>
+                    <td>{{item.install_path}}</td>
+                    <td>{{item.install_date}}</td>
+                    <td>{{item.notify}}</td>
+                    <td>{{item.deduction}}</td>
+                </tr>
+            </table>
+        </div>
+        <!-- 虚拟机安装 -->
+
+        <!-- 系统服务 -->
+        <div>
+            <p class="table-control-bar" @click.self="toggle_visible('services_records')">
+                系统服务
+                <button class="check-info-button" type="button"
+                    @click.self="get_info($event,'services_records')">查询记录</button>
+            </p>
+            <table id="services_records" border="1">
+                <tr>
+                    <th>序号</th>
+                    <th>名称</th>
+                    <th>服务名</th>
+                    <th>启动类型</th>
+                    <th>进程号</th>
+                    <th>位置</th>
+                    <th>状态</th>
+                    <th>系统服务</th>
+                    <th>数字签名</th>
+                </tr>
+
+                <tr v-for="(item, i) in services_records">
+                    <td>{{i+1}}</td>
+                    <td>{{item.name}}</td>
+                    <td>{{item.display_name}}</td>
+                    <td>{{item.start_type}}</td>
+                    <td>{{item.process_id}}</td>
+                    <td>{{item.file_path}}</td>
+                    <td>{{item.status}}</td>
+                    <td>{{item.is_system_service}}</td>
+                    <td>{{item.is_signed}}</td>
+                </tr>
+            </table>
+        </div>
+        <!-- 系统服务 -->
+
+        <!-- 系统端口配置 -->
+        <div>
+            <p class="table-control-bar" @click.self="toggle_visible('current_network_records')">
+                系统端口配置
+                <button class="check-info-button" type="button"
+                    @click.self="get_info($event,'current_network_records')">查询记录</button>
+            </p>
+            <table id="current_network_records" border="1">
+                <tr>
+                    <th>序号</th>
+                    <th>协议</th>
+                    <th>本地ip</th>
+                    <th>本地端口</th>
+                    <th>远程ip</th>
+                    <th>远程端口</th>
+                    <th>路径</th>
+                    <th>状态</th>
+                    <th>进程名</th>
+                    <th>pid</th>
+                </tr>
+
+                <tr v-for="(item, i) in current_network_records">
+                    <td>{{i+1}}</td>
+                    <td>{{item.protocol}}</td>
+                    <td>{{item.local_ip}}</td>
+                    <td>{{item.local_port}}</td>
+                    <td>{{item.remote_ip}}</td>
+                    <td>{{item.remote_port}}</td>
+                    <td>{{item.program_path}}</td>
+                    <td>{{item.status}}</td>
+                    <td>{{item.process_name}}</td>
+                    <td>{{item.pid}}</td>
+                </tr>
+            </table>
+        </div>
+        <!-- 系统端口配置 -->
+
+        <!-- 审计策略 -->
+        <div>
+            <p class="table-control-bar" @click.self="toggle_visible('account_setting')">
+                审计策略
+                <button class="check-info-button" type="button"
+                    @click.self="get_info($event,'account_setting')">查询记录</button>
+            </p>
+            <table id="account_setting" border="1">
+                <tr>
+                    <th>序号</th>
+                    <th>策略更改</th>
+                    <th>登录事件</th>
+                    <th>对象访问</th>
+                    <th>过程跟踪</th>
+                    <th>目录服务</th>
+                    <th>权限使用</th>
+                    <th>系统事件</th>
+                    <th>账户登录</th>
+                    <th>账户管理</th>
+                </tr>
+
+                <tr v-for="(item, i) in account_setting">
+                    <td>{{i+1}}</td>
+                    <td>{{item.Event}}</td>
+                    <td>{{item.Login}}</td>
+                    <td>{{item.Object}}</td>
+                    <td>{{item.SpecialUse}}</td>
+                    <td>{{item.Modify}}</td>
+                    <td>{{item.Account}}</td>
+                    <td>{{item.Process}}</td>
+                    <td>{{item.AD}}</td>
+                    <td>{{item.LoginOther}}</td>
+                </tr>
+            </table>
+        </div>
+        <!-- 审计策略 -->
+
+        <!-- 系统权限 -->
+        <div>
+            <p class="table-control-bar" @click.self="toggle_visible('account_permission_setting')">
+                系统权限
+                <button class="check-info-button" type="button"
+                    @click.self="get_info($event,'account_permission_setting')">查询记录</button>
+            </p>
+            <table id="account_permission_setting" border="1">
+                <tr>
+                    <th>序号</th>
+                    <th>权限</th>
+                    <th>用户</th>
+                </tr>
+
+                <tr v-for="(item, i) in account_permission_setting">
+                    <td>{{i+1}}</td>
+                    <td>{{item.PermissionPrompt}}</td>
+                    <td>{{item.UserName}}</td>
+                </tr>
+            </table>
+        </div>
+        <!-- 系统权限 -->
+
+        <!-- 安全策略 -->
+        <div>
+            <p class="table-control-bar" @click.self="toggle_visible('account_strategy')">
+                安全策略
+                <button class="check-info-button" type="button"
+                    @click.self="get_info($event,'account_strategy')">查询记录</button>
+            </p>
+            <table id="account_strategy" border="1">
+                <tr>
+                    <th>序号</th>
+                    <th>口令最小长度</th>
+                    <th>口令最长期限</th>
+                    <th>口令最短期限</th>
+                    <th>强制口令历史</th>
+                    <th>账户锁定时间</th>
+                    <th>复位计数器</th>
+                    <th>锁定阈值</th>
+                    <th>Guest 状态</th>
+                </tr>
+                <tr v-for="(item, i) in account_strategy">
+                    <td>{{i+1}}</td>
+                    <td>{{item.MinValidityPeriod}}</td>
+                    <td>{{item.MaxValidityPeriod}}</td>
+                    <td>{{item.MinPasswordLength}}</td>
+                    <td>{{item.PasswordHistory}}</td>
+                    <td>{{item.LockTime}}</td>
+                    <td>{{item.RestCounter}}</td>
+                    <td>{{item.LockThreshold}}</td>
+                    <td>{{item.GuestStatus}}</td>
+                </tr>
+            </table>
+        </div>
+        <!-- 安全策略 -->
 
         <!-- 检查结果及整改意见 -->
         <footer style="margin-top: 10px;">
@@ -165,6 +672,8 @@
         </footer>
         <!-- 检查结果及整改意见结束 -->
     </div>
+
+
 
 </body>
 
