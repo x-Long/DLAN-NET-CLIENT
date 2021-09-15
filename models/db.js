@@ -58,6 +58,8 @@ module.exports = {
   insert_db: insert_db
 }
 
+// create database dlan;
+// use dlan;
 
 // CREATE TABLE IF NOT EXISTS `network_info`(
 //     `id` INT UNSIGNED AUTO_INCREMENT,
